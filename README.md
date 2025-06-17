@@ -1,5 +1,8 @@
 # Maquette-Smart-Analyser
 
+> **Prerequisite:**
+> You must have [Node.js](https://nodejs.org/) installed (recommended version: 18.x or 20.x) before running this project.
+
 [Edit in StackBlitz next generation editor ⚡️](https://stackblitz.com/~/github.com/Nchanti33/Maquette-Smart-Analyser)
 
 ## Project Documentation / Documentation du projet
