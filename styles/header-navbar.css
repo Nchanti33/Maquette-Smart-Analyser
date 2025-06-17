@@ -1,0 +1,67 @@
+/* Header styles for Smart Analyzer */
+
+.header-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  background: #fff;
+  color: #222;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.header-navbar[data-theme="dark"] {
+  background: #18181b;
+  color: #fafafa;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header-navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+.header-navbar-inner.header-navbar-between {
+  justify-content: space-between;
+  width: 100%;
+  max-width: none;
+  padding: 0 2rem;
+  align-items: center;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.header-theme-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+  color: inherit;
+}
+
+.header-theme-btn:hover {
+  background: rgba(0, 174, 141, 0.08);
+}

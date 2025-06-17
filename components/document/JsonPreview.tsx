@@ -1,30 +1,35 @@
-'use client';
+"use client";
 
-import { Feature } from '@/lib/types/document';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Copy, Download } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useState } from 'react';
+import { Feature } from "@/lib/types/document";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Copy, Download } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from "react";
 
 interface JsonPreviewProps {
   feature?: Feature;
   allFeatures?: Feature[];
+  outputDataString?: string;
 }
 
-export const JsonPreview = ({ feature, allFeatures }: JsonPreviewProps) => {
+export const JsonPreview = ({
+  feature,
+  allFeatures,
+  outputDataString,
+}: JsonPreviewProps) => {
   const [copied, setCopied] = useState(false);
-  
+
   const handleCopy = (json: string) => {
     navigator.clipboard.writeText(json);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  
+
   const handleDownload = (json: string, filename: string) => {
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
@@ -32,17 +37,24 @@ export const JsonPreview = ({ feature, allFeatures }: JsonPreviewProps) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-  
-  const jsonToDisplay = feature 
+
+  // If outputDataString is provided, display it instead of the default logic
+  const jsonToDisplay = outputDataString
+    ? outputDataString
+    : feature
     ? JSON.stringify(feature, null, 2)
-    : allFeatures 
-      ? JSON.stringify(allFeatures.filter(f => f.validated), null, 2)
-      : '';
-  
-  const downloadFilename = feature 
-    ? `feature-${feature.id}.json` 
-    : 'validated-features.json';
-  
+    : allFeatures
+    ? JSON.stringify(
+        allFeatures.filter((f) => f.validated),
+        null,
+        2
+      )
+    : "";
+
+  const downloadFilename = feature
+    ? `feature-${feature.id}.json`
+    : "validated-features.json";
+
   return (
     <Card className="h-full">
       <CardHeader className="px-4 py-3 flex flex-row items-center justify-between space-y-0">
@@ -71,7 +83,7 @@ export const JsonPreview = ({ feature, allFeatures }: JsonPreviewProps) => {
       <CardContent className="p-0">
         <ScrollArea className="h-[calc(100vh-18rem)]">
           {jsonToDisplay ? (
-            <pre className="p-4 text-xs font-mono whitespace-pre-wrap overflow-auto bg-secondary/30 rounded-b-md">
+            <pre className="p-4 text-xs font-mono whitespace-pre-wrap break-words overflow-auto bg-secondary/30 rounded-b-md auto-wrap code-block">
               {jsonToDisplay}
             </pre>
           ) : (
