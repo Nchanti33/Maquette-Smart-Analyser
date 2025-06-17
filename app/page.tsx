@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { DocumentNode, Feature, DocumentData } from "@/lib/types/document";
-import { sampleDocument } from "@/lib/mock/sampleDocument";
 import { Header } from "@/components/layout/Header";
 import { DocumentUpload } from "@/components/document/DocumentUpload";
 // Removed DocumentTree import
 import { ParagraphList } from "@/components/document/ParagraphList";
-import { FeatureCard } from "@/components/document/FeatureCard";
-import { JsonPreview } from "@/components/document/JsonPreview";
 import { FilterBar } from "@/components/filters/FilterBar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -21,6 +17,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { sendDocumentToExternalApi } from "@/src/services/externalApiService";
 import { SpecDetail } from "@/components/document/SpecDetail";
+import { JsonPreview } from "@/components/document/JsonPreview";
 import "./main-content.css";
 
 // Utility function to recursively remove unnecessary newlines from any object/string
@@ -92,31 +89,36 @@ export default function Home() {
     for (const line of outputDataString.split(/\n/)) {
       // Réduire l'indentation avant de traiter les lignes qui se terminent par '}'
       if (line.match(/^\s*}/)) indent--;
-      // Ajouter l'indentation appropriée à chaque ligne
-      tabbed += "  ".repeat(Math.max(indent, 0)) + line.trim() + "\n";
+      // Ajouter l'indentation appropriée à chaque ligne sans trim()
+      tabbed += "  ".repeat(Math.max(indent, 0)) + line + "\n";
       // Augmenter l'indentation après les lignes qui se terminent par '{'
       if (line.match(/{$/)) indent++;
     }
     outputDataString = tabbed;
   }
 
-  // Debug: log outputDataString and its length
-  if (outputDataString) {
-    console.log("outputDataString length:", outputDataString.length);
-    console.log("outputDataString preview:", outputDataString.slice(0, 1000)); // Preview first 1000 chars
-  }
+  // // Debug: log outputDataString and its length
+  // if (outputDataString) {
+  //   console.log("outputDataString length:", outputDataString.length);
+  //   console.log("outputDataString preview:", outputDataString.slice(0, 1000)); // Preview first 1000 chars
+  // }
 
-  // Array of strings split by the custom separator: ',' between '}' and '{' (close-open)
+  // Extraction robuste de tous les objets JSON du texte (évite les fragments invalides)
   let outputDataArray: string[] = [];
   if (outputDataString) {
-    outputDataArray = outputDataString.split(/},\s*{/g).map((str, idx, arr) => {
-      // Add back the removed braces except for the first and last elements
-      if (arr.length === 1) return str;
-      if (idx === 0) return str + "}";
-      if (idx === arr.length - 1) return "{" + str;
-      return "{" + str + "}";
-    });
+    // Cette regex extrait tous les objets JSON (accolades équilibrées)
+    const regex = /\{(?:[^{}]|\{[^{}]*\})*\}/g;
+    outputDataArray = outputDataString.match(regex) || [];
   }
+
+  // Parsing sécurisé de outputDataArray : chaque case est toujours un objet JSON
+  const parsedOutputDataArray = outputDataArray.map((item) => {
+    try {
+      return JSON.parse(item);
+    } catch {
+      return { error: "Spec invalide" };
+    }
+  });
 
   const { toast } = useToast();
 
@@ -287,12 +289,12 @@ export default function Home() {
                   Retour
                 </button>
               </div>
-              <FilterBar
+              {/* <FilterBar
                 onFilterChange={setSearchFilter}
                 onValidationFilterChange={setValidationFilter}
                 validationFilter={validationFilter}
                 features={document.features}
-              />
+              /> */}
               <ResizablePanelGroup
                 direction="horizontal"
                 className="min-h-[calc(100vh-16rem)] w-full"
@@ -319,28 +321,14 @@ export default function Home() {
                 <ResizablePanel defaultSize={40}>
                   <div className="h-full p-1 overflow-auto content-container">
                     {selectedCaseIdx !== null &&
-                    outputDataArray[selectedCaseIdx] ? (
-                      (() => {
-                        let parsed = null;
-                        try {
-                          parsed = JSON.parse(
-                            outputDataArray[selectedCaseIdx]
-                              .replace(/^[^\{]*/, "")
-                              .replace(/[^\}]*$/, "")
-                          );
-                        } catch {
-                          return (
-                            <pre className="whitespace-pre-wrap break-words overflow-auto auto-wrap code-block text-xs bg-white rounded-lg shadow border border-teal-200 p-4">
-                              {outputDataArray[selectedCaseIdx]}
-                            </pre>
-                          );
+                    parsedOutputDataArray[selectedCaseIdx] ? (
+                      <SpecDetail
+                        jsonData={parsedOutputDataArray[selectedCaseIdx]}
+                        specId={
+                          parsedOutputDataArray[selectedCaseIdx].id ||
+                          `Spec ${selectedCaseIdx + 1}`
                         }
-                        return (
-                          <pre className="whitespace-pre-wrap break-words overflow-auto auto-wrap code-block text-xs bg-white rounded-lg shadow border border-teal-200 p-4">
-                            {JSON.stringify(parsed, null, 2)}
-                          </pre>
-                        );
-                      })()
+                      />
                     ) : selectedNodeId && selectedNode ? (
                       <div className="space-y-4 h-full overflow-auto">
                         <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
@@ -356,28 +344,6 @@ export default function Home() {
                             </p>
                           )}
                         </div>
-
-                        {selectedNodeFeatures.length > 0 ? (
-                          <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-teal-800">
-                              Detected Features
-                            </h3>
-                            {selectedNodeFeatures.map((feature) => (
-                              <FeatureCard
-                                key={feature.id}
-                                feature={feature}
-                                sourceNode={selectedNode}
-                                onValidate={handleFeatureValidation}
-                                onEdit={handleFeatureEdit}
-                                onDelete={handleFeatureDelete}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="rounded-lg border p-8 text-center text-teal-400 border-teal-200 bg-white/60">
-                            No features detected for this {selectedNode.type}
-                          </div>
-                        )}
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-full text-teal-400">

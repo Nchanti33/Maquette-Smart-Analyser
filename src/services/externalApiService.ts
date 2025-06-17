@@ -11,7 +11,6 @@ export async function sendDocumentToExternalApi(
     const uploadForm = new FormData();
     uploadForm.append("file", file);
     uploadForm.append("user", user);
-    console.log("Uploading file to Dify /files/upload", file);
     const uploadRes = await fetch("https://api.dify.ai/v1/files/upload", {
       method: "POST",
       headers: {
@@ -26,7 +25,6 @@ export async function sendDocumentToExternalApi(
     }
     const uploadData = await uploadRes.json();
     const fileId = uploadData.id;
-    console.log("File uploaded, fileId:", fileId);
 
     // 2. Run the workflow with the uploaded file
     let workflowBody;
@@ -45,7 +43,6 @@ export async function sendDocumentToExternalApi(
       response_mode: "blocking",
       user: user,
     };
-    console.log("Running workflow with single object:", workflowBody);
     workflowRes = await fetch(`https://api.dify.ai/v1/workflows/run`, {
       method: "POST",
       headers: {
@@ -72,7 +69,6 @@ export async function sendDocumentToExternalApi(
         user: user,
       };
       triedArray = true;
-      console.log("Retrying workflow with array of object:", workflowBody);
       workflowRes = await fetch(`https://api.dify.ai/v1/workflows/run`, {
         method: "POST",
         headers: {
@@ -93,7 +89,6 @@ export async function sendDocumentToExternalApi(
           user: user,
         };
         triedDirectId = true;
-        console.log("Retrying workflow with direct fileId:", workflowBody);
         workflowRes = await fetch(`https://api.dify.ai/v1/workflows/run`, {
           method: "POST",
           headers: {
@@ -111,11 +106,8 @@ export async function sendDocumentToExternalApi(
     }
     workflowResult = await workflowRes.json();
     if (triedDirectId) {
-      console.log("Workflow result (direct fileId):", workflowResult);
     } else if (triedArray) {
-      console.log("Workflow result (array of object):", workflowResult);
     } else {
-      console.log("Workflow result (single object):", workflowResult);
     }
     return workflowResult;
   } catch (error) {

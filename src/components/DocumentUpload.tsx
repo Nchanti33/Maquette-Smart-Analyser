@@ -3,6 +3,9 @@ import { sendDocumentToExternalApi } from "../services/externalApiService";
 
 const DocumentUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [user, setUser] = useState<string>("");
+  const [workflowVarName, setWorkflowVarName] = useState<string>("");
+  const [workflowId, setWorkflowId] = useState<string>("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -12,21 +15,43 @@ const DocumentUpload: React.FC = () => {
   };
 
   const handleFileUpload = async () => {
-    if (file) {
+    if (file && user && workflowVarName && workflowId) {
       try {
-        const apiResult = await sendDocumentToExternalApi(file);
-        // Stockez apiResult dans le state ou passez-le à la suite du process
-        // (affichage à venir, ne pas modifier l'affichage pour l'instant)
-        console.log("External API result:", apiResult);
+        await sendDocumentToExternalApi(
+          file,
+          user,
+          workflowVarName,
+          workflowId
+        );
       } catch (error) {
         console.error("Error sending document to external API:", error);
       }
+    } else {
+      alert("Please provide all required fields.");
     }
   };
 
   return (
     <div>
       <input type="file" onChange={handleFileChange} />
+      <input
+        type="text"
+        placeholder="User"
+        value={user}
+        onChange={(e) => setUser(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Workflow Variable Name"
+        value={workflowVarName}
+        onChange={(e) => setWorkflowVarName(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Workflow ID"
+        value={workflowId}
+        onChange={(e) => setWorkflowId(e.target.value)}
+      />
       <button onClick={handleFileUpload}>Upload Document</button>
     </div>
   );

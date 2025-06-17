@@ -8,6 +8,7 @@ interface SpecDetailProps {
 }
 
 export const SpecDetail: React.FC<SpecDetailProps> = ({ jsonData, specId }) => {
+  console.log("Type de jsonData:", typeof jsonData);
   if (!jsonData || typeof jsonData !== "object") {
     return (
       <div className="bg-white rounded-lg shadow border border-teal-200 p-4 overflow-auto">
